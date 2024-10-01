@@ -1,5 +1,5 @@
 # Talbot
-A Nextflow pipeline for pang genome analyses including phylogenic tree. The pipeline is a upgraded version of the pipeline fl_cg_snp. 
+A Nextflow pipeline for pan genome analyses including phylogenic tree. The pipeline is a upgraded version of the pipeline fl_cg_snp. 
 
 ## Prerequisites
 Nextflow should be installed. The detail of installation can be found in https://github.com/nextflow-io/nextflow.
