@@ -1,6 +1,3 @@
-# The parameter "input" and "output" are the absolute path. Do not include the "/" at the end of the paths.
-input          : "/blue/bphl-florida/dongyibo/Dev_module_Talbot/gffs"
-output    : "/blue/bphl-florida/dongyibo/Dev_module_Talbot/output"
-
-# change the number of threds based on your requirement.
-threads   : 9
+# Input / Output absolute paths, no trailing slash "/"
+input:  "/full/path/to/gffs"
+output: "/full/path/to/output"
