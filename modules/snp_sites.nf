@@ -1,6 +1,6 @@
 process snp_sites {
     tag "core_snps"
-    publishDir { "${params.output}/snp_sites" }, mode: 'copy', pattern: 'core_snps.fasta'
+    publishDir { "${params.output}" }, mode: 'copy', pattern: 'core_snps.fasta'
 
     input:
         path core_aln

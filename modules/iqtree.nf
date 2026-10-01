@@ -1,6 +1,7 @@
 process iqtree {
     tag "core_snps"
-    publishDir { "${params.output}/iqtree" }, mode: 'copy'
+    publishDir { "${params.output}" },        mode: 'copy', pattern: 'core_snps.treefile'
+    publishDir { "${params.output}/iqtree" }, mode: 'copy', pattern: 'core_snps.{contree,iqtree,log}'
 
     input:
         path snps

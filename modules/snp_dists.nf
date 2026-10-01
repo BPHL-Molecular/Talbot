@@ -1,6 +1,6 @@
 process snp_dists {
     tag "pairwise"
-    publishDir { "${params.output}/snp_dists" }, mode: 'copy'
+    publishDir { "${params.output}" }, mode: 'copy'
 
     input:
         path core_aln

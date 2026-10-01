@@ -10,8 +10,8 @@ All notable changes to Talbot are documented in this file.
 One process per module, containers and resources in `nextflow.config`, submission through `talbot.sh`.
 
 - `talbot.nf` is the entry point; `talbot.sh` submits it on SLURM with the `apptainer` profile.
-- Modules: `roary`, `snp_sites`, `snp_dists`, `iqtree`, each publishing to its own directory under `params.output`.
-- Published files: Roary `core_gene_alignment.aln`, `gene_presence_absence.csv` and `summary_statistics.txt`; IQ-TREE `.treefile`, `.contree`, `.iqtree` and `.log`.
+- Modules: `roary`, `snp_sites`, `snp_dists`, `iqtree`.
+- `params.output` holds `pairwise_matrix.tsv`, `core_snps.fasta` and `core_snps.treefile`; `roary/` holds `core_gene_alignment.aln`, `gene_presence_absence.csv` and `summary_statistics.txt`; `iqtree/` holds `.contree`, `.iqtree` and `.log`.
 - `roary` runs with `-i 90 -e --mafft`.
 - `nextflow.config` holds the `standard`, `docker`, `singularity` and `apptainer` profiles, the container and CPU/memory for each process, and the run record in `params.output/pipeline_info/`.
 - `params.yaml` takes `input`, `output` and `pangenome`.

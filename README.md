@@ -129,11 +129,11 @@ All results are written to `params.output/`:
 | `summary_report.txt` | One row per run: pangenome tool, genomes, core genes, core alignment length, SNP sites, min/max pairwise SNPs, IQ-TREE best-fit model, SNP threshold, number of clusters, samples flagged by core QC |
 | `core_qc_report.txt` | One row per sample: percentage of the core alignment missing, `PASS` or `REVIEW` |
 | `linkage_report.txt` | Only when `snp_threshold` is set. One row per sample: cluster ID, cluster size, closest sample(s), min SNPs, number of samples within the threshold |
+| `pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
+| `core_snps.fasta` | Variable sites of the core gene alignment |
+| `core_snps.treefile` | Maximum likelihood tree, UFBoot and SH-aLRT support (1000 replicates each) |
 | `roary/` | Roary pangenome (`pangenome: "roary"`): `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
 | `panaroo/` | Panaroo pangenome (`pangenome: "panaroo"`): `core_gene_alignment_filtered.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
-| `snp_sites/core_snps.fasta` | Variable sites of the core gene alignment |
-| `snp_dists/pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
-| `iqtree/core_snps.treefile` | Maximum likelihood tree, UFBoot and SH-aLRT support (1000 replicates each) |
 | `iqtree/core_snps.midpoint.treefile` | The ML tree rooted at its midpoint, with the same support values, for viewing in iTOL or Microreact |
 | `iqtree/core_snps.contree` | UFBoot consensus tree |
 | `iqtree/core_snps.iqtree` | IQ-TREE report, including the best-fit model |
