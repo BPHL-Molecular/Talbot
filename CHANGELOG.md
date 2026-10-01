@@ -23,3 +23,10 @@ One process per module, containers and resources in `nextflow.config`, submissio
 - `modules/panaroo.nf`: `--clean-mode strict --remove-invalid-genes -a core --aligner mafft`; downstream steps use `core_gene_alignment_filtered.aln`.
 - Containers: Roary 3.13.0, Panaroo 1.8.0, snp-sites 2.5.1, snp-dists 1.2.0, IQ-TREE 3.1.3.
 - IQ-TREE runs `-m MFP` with `-fconst` from `snp-sites -C` and `--seed 12345`.
+
+### SNP report
+- `bin/summary_report.py` (Python 3, standard library only) runs on the host through `modules/summary_report.nf`; `talbot.sh` loads the `python` module.
+- `summary_report.txt`: pangenome tool, genome count, core genes, core alignment length, SNP sites, min/max pairwise SNPs, best-fit model.
+- `linkage_report.txt`: closest sample(s), min SNPs, linkage tier (`Strong` 0-10, `Intermediate` 11-40, `Lineage` 41-150, `Unlinked` over 150), samples within 10 SNPs.
+- `iqtree/core_snps.midpoint.treefile`: the ML tree rooted at its midpoint, support values kept on their bipartitions.
+- Both reports are UTF-16LE with a BOM and CRLF line endings; unreadable values are `No data`.

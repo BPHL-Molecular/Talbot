@@ -11,7 +11,7 @@
 #SBATCH --mail-user=your@email.gov
 #SBATCH --mail-type=FAIL,END
 
-module load apptainer nextflow
+module load apptainer nextflow python
 
 # Path to container image cache directory
 export NXF_APPTAINER_CACHEDIR=/path/to/apptainer/cache

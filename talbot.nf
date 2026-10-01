@@ -8,11 +8,12 @@
 
 nextflow.enable.dsl = 2
 
-include { roary }     from './modules/roary.nf'
-include { panaroo }   from './modules/panaroo.nf'
-include { snp_sites } from './modules/snp_sites.nf'
-include { snp_dists } from './modules/snp_dists.nf'
-include { iqtree }    from './modules/iqtree.nf'
+include { roary }          from './modules/roary.nf'
+include { panaroo }        from './modules/panaroo.nf'
+include { snp_sites }      from './modules/snp_sites.nf'
+include { snp_dists }      from './modules/snp_dists.nf'
+include { iqtree }         from './modules/iqtree.nf'
+include { summary_report } from './modules/summary_report.nf'
 
 workflow {
     log.info """
@@ -35,10 +36,19 @@ workflow {
 
     ch_gffs = channel.fromPath("${params.input}/*.gff").collect()
 
-    ch_aln  = params.pangenome == 'panaroo' ? panaroo(ch_gffs).core_aln : roary(ch_gffs).core_aln
-    ch_snps = snp_sites(ch_aln)
-    snp_dists(ch_aln)
-    ch_tree = iqtree(ch_snps.snps, ch_snps.fconst)
+    ch_pan   = params.pangenome == 'panaroo' ? panaroo(ch_gffs) : roary(ch_gffs)
+    ch_snps  = snp_sites(ch_pan.core_aln)
+    ch_dists = snp_dists(ch_pan.core_aln)
+    ch_tree  = iqtree(ch_snps.snps, ch_snps.fconst)
+
+    summary_report(
+        ch_dists.matrix,
+        ch_pan.summary,
+        ch_pan.core_aln,
+        ch_snps.snps,
+        ch_tree.report,
+        ch_tree.tree
+    )
 
     ch_tree.tree
         .subscribe { tree ->

@@ -7,6 +7,7 @@ process iqtree {
         path fconst
     output:
         path "core_snps.treefile",             emit: tree
+        path "core_snps.iqtree",               emit: report
         path "core_snps.{contree,iqtree,log}", emit: results
 
     script:
