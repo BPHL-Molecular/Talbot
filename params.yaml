@@ -5,5 +5,6 @@ output: "/full/path/to/output"
 # Pangenome tool: "roary" or "panaroo"
 pangenome: "roary"
 
-# SNP threshold for clusters: set a number to write linkage_report.txt, leave null to skip it
+# Optional: group closely related samples into clusters and generate a linkage_report.txt
+# Set a number of SNPs (e.g. 5): samples this close or closer are grouped together, or leave null to skip clustering
 snp_threshold: null
