@@ -9,7 +9,7 @@
 
 ## 🦠🌳 Overview
 
-Talbot is Florida BPHL's Nextflow pipeline for bacterial core genome SNP phylogeny. It is the downstream step after [Sanibel](https://github.com/BPHL-Molecular/Sanibel): it takes the Prokka GFF files Sanibel writes for each sample, builds a pangenome with Roary, extracts the core genome SNPs, computes pairwise SNP distances and infers a maximum likelihood tree with IQ-TREE.
+Talbot is Florida BPHL's Nextflow pipeline for bacterial core genome SNP phylogeny. It is the downstream step after [Sanibel](https://github.com/BPHL-Molecular/Sanibel): it takes the Prokka GFF files Sanibel writes for each sample, builds a pangenome with Roary or Panaroo, extracts the core genome SNPs, computes pairwise SNP distances and infers a maximum likelihood tree with IQ-TREE.
 
 Talbot is built for relatedness and outbreak investigation, so all genomes in a run should be the same species and, ideally, share a sequence type or serotype. A pangenome across species or genera has almost no core genes, and the resulting tree is not meaningful.
 
@@ -68,11 +68,21 @@ sbatch talbot.sh
 nextflow run talbot.nf -profile apptainer -params-file params.yaml
 ```
 
+### Pangenome tool
+
+Roary is the default, so results stay comparable with earlier Talbot runs. To use Panaroo instead, add `pangenome: "panaroo"` to `params.yaml` or pass it on the command line:
+
+```bash
+nextflow run talbot.nf -profile apptainer -params-file params.yaml --pangenome panaroo
+```
+
+Panaroo corrects for annotation errors from fragmented assemblies, contamination and misassemblies ([Tonkin-Hill et al. 2020](https://doi.org/10.1186/s13059-020-02090-4)). Talbot runs it in strict mode and uses its filtered core alignment, which drops high-entropy genes. SNP distances from the two tools can differ, so compare runs made with the same tool.
+
 ### Workflow Diagram
 
 ```mermaid
 flowchart LR
-    IN[Prokka GFFs] --> PAN["Pangenome<br/>Roary"]
+    IN[Prokka GFFs] --> PAN["Pangenome<br/>Roary or Panaroo"]
     PAN --> SNP["Core SNPs<br/>snp-sites"]
     PAN --> DIST["Pairwise distances<br/>snp-dists"]
     SNP --> TREE["ML tree<br/>IQ-TREE"]
@@ -85,7 +95,7 @@ flowchart LR
 
 Talbot is made possible thanks to the following tools:
 
-[Roary](https://github.com/sanger-pathogens/Roary) · [snp-sites](https://github.com/sanger-pathogens/snp-sites) · [snp-dists](https://github.com/tseemann/snp-dists) · [IQ-TREE](http://www.iqtree.org)
+[Roary](https://github.com/sanger-pathogens/Roary) · [Panaroo](https://github.com/gtonkinhill/panaroo) · [snp-sites](https://github.com/sanger-pathogens/snp-sites) · [snp-dists](https://github.com/tseemann/snp-dists) · [IQ-TREE](https://github.com/iqtree/iqtree3)
 
 ### 📁 Output
 
@@ -93,7 +103,8 @@ All results are written to `params.output/`:
 
 | Path | Contents |
 |------|----------|
-| `roary/` | Roary pangenome: `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
+| `roary/` | Roary pangenome (default): `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
+| `panaroo/` | Panaroo pangenome (`--pangenome panaroo`): `core_gene_alignment_filtered.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
 | `snp_sites/core_snps.fasta` | Variable sites of the core gene alignment |
 | `snp_dists/pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
 | `iqtree/core_snps.treefile` | Maximum likelihood tree, UFBoot and SH-aLRT support (1000 replicates each) |

@@ -1,11 +1,12 @@
 process snp_sites {
     tag "core_snps"
-    publishDir { "${params.output}/snp_sites" }, mode: 'copy'
+    publishDir { "${params.output}/snp_sites" }, mode: 'copy', pattern: 'core_snps.fasta'
 
     input:
         path core_aln
     output:
         path "core_snps.fasta", emit: snps
+        path "fconst.txt",      emit: fconst
 
     script:
     """
@@ -15,5 +16,7 @@ process snp_sites {
         echo "snp_sites: no core SNPs in ${core_aln}, the genomes are identical or share no core genes" >&2
         exit 1
     fi
+
+    snp-sites -C -o fconst.txt ${core_aln}
     """
 }

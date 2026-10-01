@@ -9,6 +9,7 @@
 nextflow.enable.dsl = 2
 
 include { roary }     from './modules/roary.nf'
+include { panaroo }   from './modules/panaroo.nf'
 include { snp_sites } from './modules/snp_sites.nf'
 include { snp_dists } from './modules/snp_dists.nf'
 include { iqtree }    from './modules/iqtree.nf'
@@ -19,8 +20,12 @@ workflow {
     ==========================================================================
     input dir   : ${params.input}
     output dir  : ${params.output}
+    pangenome   : ${params.pangenome}
     ==========================================================================
     """
+
+    if ( !(params.pangenome in ['roary', 'panaroo']) )
+        error "pangenome must be roary or panaroo, got ${params.pangenome}"
 
     def n_gffs = files("${params.input}/*.gff").size()
     if ( n_gffs < 4 )
@@ -30,10 +35,10 @@ workflow {
 
     ch_gffs = channel.fromPath("${params.input}/*.gff").collect()
 
-    ch_roary = roary(ch_gffs)
-    ch_snps  = snp_sites(ch_roary.core_aln)
-    snp_dists(ch_roary.core_aln)
-    ch_tree  = iqtree(ch_snps.snps)
+    ch_aln  = params.pangenome == 'panaroo' ? panaroo(ch_gffs).core_aln : roary(ch_gffs).core_aln
+    ch_snps = snp_sites(ch_aln)
+    snp_dists(ch_aln)
+    ch_tree = iqtree(ch_snps.snps, ch_snps.fconst)
 
     ch_tree.tree
         .subscribe { tree ->
