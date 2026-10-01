@@ -5,8 +5,9 @@ process roary {
     input:
         path gffs
     output:
-        path "roary/core_gene_alignment.aln", emit: core_aln
-        path "roary/",                        emit: results
+        path "roary/core_gene_alignment.aln",   emit: core_aln
+        path "roary/gene_presence_absence.csv", emit: presence_absence
+        path "roary/summary_statistics.txt",    emit: summary
 
     script:
     """

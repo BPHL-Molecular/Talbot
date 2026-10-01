@@ -97,7 +97,9 @@ All results are written to `params.output/`:
 | `snp_sites/core_snps.fasta` | Variable sites of the core gene alignment |
 | `snp_dists/pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
 | `iqtree/core_snps.treefile` | Maximum likelihood tree, UFBoot and SH-aLRT support (1000 replicates each) |
+| `iqtree/core_snps.contree` | UFBoot consensus tree |
 | `iqtree/core_snps.iqtree` | IQ-TREE report, including the best-fit model |
+| `iqtree/core_snps.log` | IQ-TREE run log |
 | `pipeline_info/` | Nextflow run record: `trace.txt`, `execution_report.html`, `timeline.html` |
 
 `talbot.sh` renames the output directory with a timestamp suffix when the run finishes successfully.

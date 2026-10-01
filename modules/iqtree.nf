@@ -5,8 +5,8 @@ process iqtree {
     input:
         path snps
     output:
-        path "core_snps.treefile", emit: tree
-        path "core_snps.*",        emit: results
+        path "core_snps.treefile",             emit: tree
+        path "core_snps.{contree,iqtree,log}", emit: results
 
     script:
     """
