@@ -29,5 +29,8 @@ One process per module, containers and resources in `nextflow.config`, submissio
 - `summary_report.txt`: pangenome tool, genome count, core genes, core alignment length, SNP sites, min/max pairwise SNPs, best-fit model, SNP threshold, cluster count, samples flagged by core QC.
 - `core_qc_report.txt`: per-sample percentage of the core alignment that is gaps or unknown bases; above 10% is `REVIEW`.
 - `snp_threshold` in `params.yaml` (optional, no default) clusters samples by single linkage and writes `linkage_report.txt`: cluster ID, cluster size, closest sample(s), min SNPs, samples within the threshold. A value that is not a whole number of 0 or more stops the run.
+- `summary_report.txt` `core_genome_qc`: `PASS`, or `UNRELIABLE` with the likely cause when there are fewer than 100 core genes.
+- `panaroo` fails with a clear message when no gene is core.
+- README "Reading the results": a checklist before sharing results and worked examples of low core genes, a distant sample and tool differences.
 - `iqtree/core_snps.midpoint.treefile`: the ML tree rooted at its midpoint, support values kept on their bipartitions.
 - Reports are UTF-16LE with a BOM and CRLF line endings; unreadable values are `No data`.

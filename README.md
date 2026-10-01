@@ -127,7 +127,7 @@ All results are written to `params.output/`:
 
 | Path | Contents |
 |------|----------|
-| `summary_report.txt` | One row per run: pangenome tool, genomes, core genes, core alignment length, SNP sites, min/max pairwise SNPs, IQ-TREE best-fit model, SNP threshold, number of clusters, samples flagged by core QC |
+| `summary_report.txt` | One row per run: pangenome tool, genomes, core genes, core genome QC (`PASS` or `UNRELIABLE` below 100 core genes), core alignment length, SNP sites, min/max pairwise SNPs, IQ-TREE best-fit model, SNP threshold, number of clusters, samples flagged by core QC |
 | `core_qc_report.txt` | One row per sample: percentage of the core alignment missing, `PASS` or `REVIEW` |
 | `linkage_report.txt` | Only when `snp_threshold` is set. One row per sample: cluster ID, cluster size, closest sample(s), min SNPs, number of samples within the threshold |
 | `pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
@@ -140,6 +140,43 @@ All results are written to `params.output/`:
 | `iqtree/core_snps.iqtree` | IQ-TREE report, including the best-fit model |
 | `iqtree/core_snps.log` | IQ-TREE run log |
 | `pipeline_info/` | Nextflow run record: `trace.txt`, `execution_report.html`, `timeline.html` |
+
+### 🔎 Reading the results
+
+Talbot builds a tree and a distance matrix from whatever genomes it is given, even when they don't belong together, so check the reports before forwarding anything.
+
+#### Checklist
+
+- `core_genome_qc` in `summary_report.txt` is `PASS`, and `core_genes` fits a single species. In the passing runs below it was about 3,000.
+- `core_qc_review` is 0, or you know why the flagged samples are in the run.
+- The log line `genomes submitted: N, taxa in tree: N` shows the same number twice.
+- `min_snp` and `max_snp` fit what you expect for one species and sequence type.
+
+#### Too few core genes
+
+In one test, 13 genomes went in and two of them were a different organism from the other 11:
+
+- With Roary, the run finished with 1 core gene out of 13,384 gene clusters, a 255 bp alignment. `core_genome_qc` reads `UNRELIABLE`. The 11 matching samples formed one cluster at 0 SNPs because a single gene could not tell them apart, so the samples were not necessarily identical.
+- With Panaroo, the run stopped with `panaroo: no core genes found in all genomes; check for incomplete assemblies or mixed species`.
+- `core_qc_report.txt` flagged the two odd samples as `REVIEW`, each with 27% of the core alignment missing.
+
+What to do: check the species, sequence type and assembly quality of the flagged samples in Sanibel, remove the ones that don't belong and rerun. Without those two samples, the same set gave 2,949 core genes with Roary and 3,008 with Panaroo, and every sample passed core QC.
+
+#### One sample far from the rest
+
+In the 11-genome run, one sample was about 38,600 SNPs (Panaroo) or 52,000 SNPs (Roary) from every other sample, while the other 10 were 1 to 1,800 SNPs apart. A sample like that is usually a different sequence type or lineage. It sets `max_snp`, accounts for most of the SNP sites and becomes the midpoint root, which compresses the rest of the tree.
+
+What to do: check its sequence type. If the question is whether the other samples are part of an outbreak, rerun without it.
+
+#### Roary and Panaroo distances differ
+
+On the same 11 genomes, every pair under 10 SNPs had the same distance with both tools. Larger distances often differed: one pair was 152 SNPs apart with Roary and 11 with Panaroo. Whether that pair clusters at a given threshold depends on the tool.
+
+What to do: pick one tool for an investigation and use it for every run, and look closely at pairs near the threshold.
+
+#### Clusters are a screen
+
+A shared cluster in `linkage_report.txt` means the genomes are close, not that transmission happened. Confirm clusters with epidemiological data, as described under [SNP clusters](#snp-clusters).
 
 ### 📧 Contact
 **Email**: bphl-sebioinformatics@flhealth.gov

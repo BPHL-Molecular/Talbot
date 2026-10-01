@@ -19,5 +19,10 @@ process panaroo {
         --remove-invalid-genes \\
         -a core --aligner mafft \\
         -t ${task.cpus}
+
+    if [ ! -s panaroo/core_gene_alignment_filtered.aln ]; then
+        echo "panaroo: no core genes found in all genomes; check for incomplete assemblies or mixed species" >&2
+        exit 1
+    fi
     """
 }

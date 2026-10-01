@@ -10,9 +10,10 @@ NOT_SET = 'Not set'
 
 CORE_MAX_MISSING_PCT = 10.0
 MISSING_CHARS = set('-Nn?')
+MIN_CORE_GENES = 100
 
-HEADER_SUMMARY = ['pangenome_tool', 'n_genomes', 'core_genes', 'core_alignment_length',
-                  'snp_sites', 'min_snp', 'max_snp', 'best_model',
+HEADER_SUMMARY = ['pangenome_tool', 'n_genomes', 'core_genes', 'core_genome_qc',
+                  'core_alignment_length', 'snp_sites', 'min_snp', 'max_snp', 'best_model',
                   'snp_threshold', 'n_clusters', 'core_qc_review']
 HEADER_LINKAGE = ['sampleID', 'cluster_id', 'cluster_size', 'closest_sample', 'min_snp',
                   'n_within_threshold']
@@ -45,6 +46,14 @@ def core_genes(path):
             if line.startswith('Core genes'):
                 return line.rstrip('\n').split('\t')[-1].strip()
     return NO_DATA
+
+
+def core_genome_qc(n):
+    if n == NO_DATA:
+        return NO_DATA
+    if int(n) >= MIN_CORE_GENES:
+        return 'PASS'
+    return f'UNRELIABLE: fewer than {MIN_CORE_GENES} core genes; check for mixed species or incomplete assemblies'
 
 
 def best_model(path):
@@ -227,8 +236,9 @@ def main():
         write_report('linkage_report.txt', HEADER_LINKAGE,
                      linkage_rows(names, dist, args.snp_threshold, cluster_of))
 
+    n_core = core_genes(args.summary)
     write_report('summary_report.txt', HEADER_SUMMARY, [[
-        args.pangenome, len(names), core_genes(args.summary),
+        args.pangenome, len(names), n_core, core_genome_qc(n_core),
         len(next(iter(core_seqs.values()), '')) or NO_DATA, first_seq_length(args.snps),
         min(pairs), max(pairs), best_model(args.iqtree),
         NOT_SET if args.snp_threshold is None else args.snp_threshold, n_clusters,
