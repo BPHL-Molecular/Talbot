@@ -47,6 +47,9 @@ Copy only the samples you want in the tree.
 # Input / Output absolute paths, no trailing slash "/"
 input:  "/full/path/to/gffs"
 output: "/full/path/to/output"
+
+# Pangenome tool: "roary" or "panaroo"
+pangenome: "roary"
 ```
 
 #### 4. Configure talbot.sh
@@ -70,11 +73,7 @@ nextflow run talbot.nf -profile apptainer -params-file params.yaml
 
 ### Pangenome tool
 
-Roary is the default, so results stay comparable with earlier Talbot runs. To use Panaroo instead, add `pangenome: "panaroo"` to `params.yaml` or pass it on the command line:
-
-```bash
-nextflow run talbot.nf -profile apptainer -params-file params.yaml --pangenome panaroo
-```
+Set `pangenome` in `params.yaml` to `"roary"` or `"panaroo"`. Roary is the shipped setting, so results stay comparable with earlier Talbot runs.
 
 Panaroo corrects for annotation errors from fragmented assemblies, contamination and misassemblies ([Tonkin-Hill et al. 2020](https://doi.org/10.1186/s13059-020-02090-4)). Talbot runs it in strict mode and uses its filtered core alignment, which drops high-entropy genes. SNP distances from the two tools can differ, so compare runs made with the same tool.
 
@@ -103,8 +102,8 @@ All results are written to `params.output/`:
 
 | Path | Contents |
 |------|----------|
-| `roary/` | Roary pangenome (default): `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
-| `panaroo/` | Panaroo pangenome (`--pangenome panaroo`): `core_gene_alignment_filtered.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
+| `roary/` | Roary pangenome (`pangenome: "roary"`): `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
+| `panaroo/` | Panaroo pangenome (`pangenome: "panaroo"`): `core_gene_alignment_filtered.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
 | `snp_sites/core_snps.fasta` | Variable sites of the core gene alignment |
 | `snp_dists/pairwise_matrix.tsv` | Pairwise SNP distances over the core gene alignment |
 | `iqtree/core_snps.treefile` | Maximum likelihood tree, UFBoot and SH-aLRT support (1000 replicates each) |

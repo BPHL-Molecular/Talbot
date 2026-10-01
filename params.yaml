@@ -1,3 +1,6 @@
 # Input / Output absolute paths, no trailing slash "/"
 input:  "/full/path/to/gffs"
 output: "/full/path/to/output"
+
+# Pangenome tool: "roary" or "panaroo"
+pangenome: "roary"
