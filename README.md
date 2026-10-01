@@ -11,7 +11,7 @@
 
 Talbot is Florida BPHL's Nextflow pipeline for bacterial core genome SNP phylogeny. It is the downstream step after [Sanibel](https://github.com/BPHL-Molecular/Sanibel): it takes the Prokka GFF files Sanibel writes for each sample, builds a pangenome with Roary or Panaroo, extracts the core genome SNPs, computes pairwise SNP distances and infers a maximum likelihood tree with IQ-TREE.
 
-Talbot is built for relatedness and outbreak investigation, so all genomes in a run should be the same species and, ideally, share a sequence type or serotype. A pangenome across species or genera has almost no core genes, and the resulting tree is not meaningful.
+Talbot is built for relatedness and outbreak investigation, so all genomes in a run should be the same species and, ideally, share a sequence type (st) or serotype. A pangenome across species or genera has almost no core genes, and the resulting tree is not meaningful.
 
 ### ⚙️ Dependencies
 
@@ -145,38 +145,19 @@ All results are written to `params.output/`:
 
 Talbot builds a tree and a distance matrix from whatever genomes it is given, even when they don't belong together, so check the reports before forwarding anything.
 
-#### Checklist
-
-- `core_genome_qc` in `summary_report.txt` is `PASS`, and `core_genes` fits a single species. In the passing runs below it was about 3,000.
-- `core_qc_review` is 0, or you know why the flagged samples are in the run.
-- The log line `genomes submitted: N, taxa in tree: N` shows the same number twice.
-- `min_snp` and `max_snp` fit what you expect for one species and sequence type.
-
 #### Too few core genes
 
-In one test, 13 genomes went in and two of them were a different organism from the other 11:
+A gene is core only when it is in every genome, so one genome from another species/type, or one badly incomplete assembly, can shrink the core for the whole run to a handful of genes or none. Signs of this:
 
-- With Roary, the run finished with 1 core gene out of 13,384 gene clusters, a 255 bp alignment. `core_genome_qc` reads `UNRELIABLE`. The 11 matching samples formed one cluster at 0 SNPs because a single gene could not tell them apart, so the samples were not necessarily identical.
-- With Panaroo, the run stopped with `panaroo: no core genes found in all genomes; check for incomplete assemblies or mixed species`.
-- `core_qc_report.txt` flagged the two odd samples as `REVIEW`, each with 27% of the core alignment missing.
+- With Roary, the run finishes but `core_genome_qc` reads `UNRELIABLE`. Distances from a few short genes can't separate the samples, so many of them may land in one cluster at 0 SNPs without being identical.
+- With Panaroo, the run stops with `panaroo: no core genes found in all genomes; check for incomplete assemblies or mixed species`.
+- `core_qc_report.txt` flags the samples that don't fit as `REVIEW`.
 
-What to do: check the species, sequence type and assembly quality of the flagged samples in Sanibel, remove the ones that don't belong and rerun. Without those two samples, the same set gave 2,949 core genes with Roary and 3,008 with Panaroo, and every sample passed core QC.
-
-#### One sample far from the rest
-
-In the 11-genome run, one sample was about 38,600 SNPs (Panaroo) or 52,000 SNPs (Roary) from every other sample, while the other 10 were 1 to 1,800 SNPs apart. A sample like that is usually a different sequence type or lineage. It sets `max_snp`, accounts for most of the SNP sites and becomes the midpoint root, which compresses the rest of the tree.
-
-What to do: check its sequence type. If the question is whether the other samples are part of an outbreak, rerun without it.
-
-#### Roary and Panaroo distances differ
-
-On the same 11 genomes, every pair under 10 SNPs had the same distance with both tools. Larger distances often differed: one pair was 152 SNPs apart with Roary and 11 with Panaroo. Whether that pair clusters at a given threshold depends on the tool.
-
-What to do: pick one tool for an investigation and use it for every run, and look closely at pairs near the threshold.
+What to do: check the species, sequence type (st), serotype and assembly quality of the flagged samples in Sanibel, remove the ones that don't belong and rerun. Don't share results from an `UNRELIABLE` run.
 
 #### Clusters are a screen
 
-A shared cluster in `linkage_report.txt` means the genomes are close, not that transmission happened. Confirm clusters with epidemiological data, as described under [SNP clusters](#snp-clusters).
+A shared cluster in `linkage_report.txt` means the genomes are close, not that transmission happened. Confirm clusters with epidemiological data, as described under the [SNP clusters](#snp-clusters) section.
 
 ### 📧 Contact
 **Email**: bphl-sebioinformatics@flhealth.gov

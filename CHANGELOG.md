@@ -31,6 +31,6 @@ One process per module, containers and resources in `nextflow.config`, submissio
 - `snp_threshold` in `params.yaml` (optional, no default) clusters samples by single linkage and writes `linkage_report.txt`: cluster ID, cluster size, closest sample(s), min SNPs, samples within the threshold. A value that is not a whole number of 0 or more stops the run.
 - `summary_report.txt` `core_genome_qc`: `PASS`, or `UNRELIABLE` with the likely cause when there are fewer than 100 core genes.
 - `panaroo` fails with a clear message when no gene is core.
-- README "Reading the results": a checklist before sharing results and worked examples of low core genes, a distant sample and tool differences.
+- README "Reading the results": what to do when a run has too few core genes, and that clusters are a screen to confirm with epidemiological data.
 - `iqtree/core_snps.midpoint.treefile`: the ML tree rooted at its midpoint, support values kept on their bipartitions.
 - Reports are UTF-16LE with a BOM and CRLF line endings; unreadable values are `No data`.
