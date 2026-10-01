@@ -22,11 +22,15 @@ workflow {
     input dir   : ${params.input}
     output dir  : ${params.output}
     pangenome   : ${params.pangenome}
+    snp thresh  : ${params.snp_threshold != null ? params.snp_threshold : 'not set'}
     ==========================================================================
     """
 
     if ( !(params.pangenome in ['roary', 'panaroo']) )
         error "pangenome must be roary or panaroo, got ${params.pangenome}"
+
+    if ( params.snp_threshold != null && !(params.snp_threshold instanceof Integer && params.snp_threshold >= 0) )
+        error "snp_threshold must be a whole number of SNPs (0 or more), got ${params.snp_threshold}"
 
     def n_gffs = files("${params.input}/*.gff").size()
     if ( n_gffs < 4 )

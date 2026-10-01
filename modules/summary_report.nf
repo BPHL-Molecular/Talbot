@@ -12,10 +12,12 @@ process summary_report {
         path tree
     output:
         path "summary_report.txt",          emit: summary
-        path "linkage_report.txt",          emit: linkage
+        path "core_qc_report.txt",          emit: core_qc
+        path "linkage_report.txt",          emit: linkage, optional: true
         path "core_snps.midpoint.treefile", emit: midpoint_tree
 
     script:
+    def threshold = params.snp_threshold != null ? "--snp-threshold ${params.snp_threshold}" : ''
     """
     summary_report.py \\
         --matrix    ${matrix} \\
@@ -24,6 +26,7 @@ process summary_report {
         --snps      ${snps} \\
         --iqtree    ${iqtree_report} \\
         --tree      ${tree} \\
-        --pangenome ${params.pangenome}
+        --pangenome ${params.pangenome} \\
+        ${threshold}
     """
 }

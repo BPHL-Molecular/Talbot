@@ -25,8 +25,9 @@ One process per module, containers and resources in `nextflow.config`, submissio
 - IQ-TREE runs `-m MFP` with `-fconst` from `snp-sites -C` and `--seed 12345`.
 
 ### SNP report
-- `bin/summary_report.py` (Python 3, standard library only) runs on the host through `modules/summary_report.nf`; `talbot.sh` loads the `python` module.
-- `summary_report.txt`: pangenome tool, genome count, core genes, core alignment length, SNP sites, min/max pairwise SNPs, best-fit model.
-- `linkage_report.txt`: closest sample(s), min SNPs, linkage tier (`Strong` 0-10, `Intermediate` 11-40, `Lineage` 41-150, `Unlinked` over 150), samples within 10 SNPs.
+- `bin/summary_report.py` (Python 3, standard library only) runs on the host through `modules/summary_report.nf`; `talbot.sh` loads the `python3` module.
+- `summary_report.txt`: pangenome tool, genome count, core genes, core alignment length, SNP sites, min/max pairwise SNPs, best-fit model, SNP threshold, cluster count, samples flagged by core QC.
+- `core_qc_report.txt`: per-sample percentage of the core alignment that is gaps or unknown bases; above 10% is `REVIEW`.
+- `snp_threshold` in `params.yaml` (optional, no default) clusters samples by single linkage and writes `linkage_report.txt`: cluster ID, cluster size, closest sample(s), min SNPs, samples within the threshold. A value that is not a whole number of 0 or more stops the run.
 - `iqtree/core_snps.midpoint.treefile`: the ML tree rooted at its midpoint, support values kept on their bipartitions.
-- Both reports are UTF-16LE with a BOM and CRLF line endings; unreadable values are `No data`.
+- Reports are UTF-16LE with a BOM and CRLF line endings; unreadable values are `No data`.

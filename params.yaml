@@ -4,3 +4,6 @@ output: "/full/path/to/output"
 
 # Pangenome tool: "roary" or "panaroo"
 pangenome: "roary"
+
+# SNP threshold for clusters: set a number to write linkage_report.txt, leave null to skip it
+snp_threshold: null

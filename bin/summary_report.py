@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Talbot run summary, per-sample SNP linkage and midpoint-rooted tree."""
+"""Talbot run summary, SNP threshold clusters, per-sample core QC and midpoint-rooted tree."""
 
 import argparse
 import re
 import sys
 
 NO_DATA = 'No data'
+NOT_SET = 'Not set'
 
-# Screening tiers only, outbreak SNP cutoffs are species specific
-TIERS = [(10, 'Strong'), (40, 'Intermediate'), (150, 'Lineage')]
-CLOSE_SNPS = 10
+CORE_MAX_MISSING_PCT = 10.0
+MISSING_CHARS = set('-Nn?')
 
 HEADER_SUMMARY = ['pangenome_tool', 'n_genomes', 'core_genes', 'core_alignment_length',
-                  'snp_sites', 'min_snp', 'max_snp', 'best_model']
-HEADER_LINKAGE = ['sampleID', 'closest_sample', 'min_snp', 'linkage_tier', 'n_within_10']
+                  'snp_sites', 'min_snp', 'max_snp', 'best_model',
+                  'snp_threshold', 'n_clusters', 'core_qc_review']
+HEADER_LINKAGE = ['sampleID', 'cluster_id', 'cluster_size', 'closest_sample', 'min_snp',
+                  'n_within_threshold']
+HEADER_CORE_QC = ['sampleID', 'core_missing_pct', 'core_qc']
 
 
 def read_matrix(path):
@@ -50,18 +53,57 @@ def best_model(path):
     return m.group(1) if m else NO_DATA
 
 
-def tier(snps):
-    return next((label for cut, label in TIERS if snps <= cut), 'Unlinked')
+def read_fasta(path):
+    seqs, name = {}, None
+    with open(path) as fh:
+        for line in fh:
+            line = line.strip()
+            if line.startswith('>'):
+                name = line[1:].split()[0]
+                seqs[name] = []
+            elif name:
+                seqs[name].append(line)
+    return {n: ''.join(parts) for n, parts in seqs.items()}
 
 
-def linkage_rows(names, dist):
+def core_qc_rows(seqs):
+    rows = []
+    for name, seq in seqs.items():
+        pct = round(100 * sum(c in MISSING_CHARS for c in seq) / len(seq), 2) if seq else 100.0
+        rows.append([name, pct, 'REVIEW' if pct > CORE_MAX_MISSING_PCT else 'PASS'])
+    return rows
+
+
+def clusters(names, dist, threshold):
+    parent = {s: s for s in names}
+
+    def find(s):
+        while parent[s] != s:
+            parent[s] = parent[parent[s]]
+            s = parent[s]
+        return s
+
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            if dist[a][b] <= threshold:
+                parent[find(a)] = find(b)
+
+    groups = {}
+    for s in names:
+        groups.setdefault(find(s), []).append(s)
+    linked = sorted((sorted(g) for g in groups.values() if len(g) > 1), key=lambda g: (-len(g), g[0]))
+    return {s: (f'cluster_{i}', len(g)) for i, g in enumerate(linked, 1) for s in g}, len(linked)
+
+
+def linkage_rows(names, dist, threshold, cluster_of):
     rows = []
     for s in names:
         others = {o: d for o, d in dist[s].items() if o != s}
         low = min(others.values())
         closest = sorted(o for o, d in others.items() if d == low)
-        rows.append([s, ';'.join(closest), low, tier(low),
-                     sum(d <= CLOSE_SNPS for d in others.values())])
+        cluster_id, size = cluster_of.get(s, ('Unclustered', 1))
+        rows.append([s, cluster_id, size, ';'.join(closest), low,
+                     sum(d <= threshold for d in others.values())])
     return rows
 
 
@@ -167,6 +209,7 @@ def main():
     ap.add_argument('--iqtree',    required=True)
     ap.add_argument('--tree',      required=True)
     ap.add_argument('--pangenome', required=True)
+    ap.add_argument('--snp-threshold', type=int)
     args = ap.parse_args()
 
     sys.setrecursionlimit(100000)
@@ -174,12 +217,23 @@ def main():
     names, dist = read_matrix(args.matrix)
     pairs = [dist[a][b] for a in names for b in names if a != b]
 
+    core_seqs = read_fasta(args.core_aln)
+    qc_rows = core_qc_rows(core_seqs)
+    write_report('core_qc_report.txt', HEADER_CORE_QC, qc_rows)
+
+    n_clusters = NOT_SET
+    if args.snp_threshold is not None:
+        cluster_of, n_clusters = clusters(names, dist, args.snp_threshold)
+        write_report('linkage_report.txt', HEADER_LINKAGE,
+                     linkage_rows(names, dist, args.snp_threshold, cluster_of))
+
     write_report('summary_report.txt', HEADER_SUMMARY, [[
         args.pangenome, len(names), core_genes(args.summary),
-        first_seq_length(args.core_aln), first_seq_length(args.snps),
+        len(next(iter(core_seqs.values()), '')) or NO_DATA, first_seq_length(args.snps),
         min(pairs), max(pairs), best_model(args.iqtree),
+        NOT_SET if args.snp_threshold is None else args.snp_threshold, n_clusters,
+        sum(r[2] == 'REVIEW' for r in qc_rows),
     ]])
-    write_report('linkage_report.txt', HEADER_LINKAGE, linkage_rows(names, dist))
 
     with open(args.tree) as fh:
         adj, leaf_names = parse_newick(fh.read())

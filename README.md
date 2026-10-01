@@ -17,10 +17,10 @@ Talbot is built for relatedness and outbreak investigation, so all genomes in a 
 
 - **Nextflow** 23.04 to 26.x - [installation guide](https://github.com/nextflow-io/nextflow)
 - **Apptainer/Singularity** - [installation guide](https://apptainer.org/docs/user/latest/)
-- **Python** 3.10+ (standard library only)
+- **Python** 3.10+ - [installation guide](https://docs.python.org/3/using/index.html)
 - **SLURM** workload manager (required for HiPerGator; otherwise not required)
 
-All bioinformatics tools run inside containers. The report script in `bin/` runs on the host with Python 3.
+All bioinformatics tools run inside containers. The report script in `bin/` runs on the host with python3.
 
 ### 🛠️ Setup
 
@@ -44,7 +44,7 @@ Copy only the samples you want in the tree.
 
 #### 3. Python
 
-HiPerGator users can skip this step: `talbot.sh` loads Python with `module load`. Everyone else needs `python3` on the PATH when Nextflow runs, for example from a conda environment:
+HiPerGator users can skip this step: `talbot.sh` loads Python with `module load python3`. Everyone else needs `python3` on the PATH when Nextflow runs, for example from a conda environment:
 
 ```bash
 $ conda create -n talbot -c conda-forge python=3.10
@@ -60,7 +60,20 @@ output: "/full/path/to/output"
 
 # Pangenome tool: "roary" or "panaroo"
 pangenome: "roary"
+
+# SNP threshold for clusters: set a number to write linkage_report.txt, leave null to skip it
+snp_threshold: null
 ```
+
+#### SNP clusters
+
+Set `snp_threshold` in `params.yaml` to group samples into clusters and write `linkage_report.txt`. Two samples join the same cluster when they are "N" SNPs (set by `snp_threshold`) apart or closer, and clusters chain: if A is close to B and B is close to C, all three share a cluster even when A and C are further apart. Clusters are numbered by size, largest first, and samples with no partner are `Unclustered`. With `snp_threshold: null` Talbot skips the clustering and writes no linkage report.
+
+There is no default threshold on purpose. SNP cutoffs for relatedness depend on the species, the genome region compared and the epidemiology, so choose one that fits the organism and confirm clusters with epidemiological data.
+
+#### Core genome QC
+
+`core_qc_report.txt` gives, for each sample, the percentage of the core gene alignment that is gaps or unknown bases. A sample above 10% is marked `REVIEW`. A fragmented or contaminated assembly misses core genes, which shrinks the core genome for every sample in the run, so consider removing flagged samples and rerunning.
 
 #### 5. Configure talbot.sh
 
@@ -95,7 +108,7 @@ flowchart LR
     PAN --> SNP["Core SNPs<br/>snp-sites"]
     PAN --> DIST["Pairwise distances<br/>snp-dists"]
     SNP --> TREE["ML tree<br/>IQ-TREE"]
-    DIST --> REP["summary_report<br/>summary · linkage · midpoint tree"]
+    DIST --> REP["summary_report<br/>summary · core QC · clusters · midpoint tree"]
     TREE --> REP
 
     style REP fill:#f96,stroke:#333,color:#000
@@ -113,8 +126,9 @@ All results are written to `params.output/`:
 
 | Path | Contents |
 |------|----------|
-| `summary_report.txt` | One row per run: pangenome tool, genomes, core genes, core alignment length, SNP sites, min/max pairwise SNPs, IQ-TREE best-fit model |
-| `linkage_report.txt` | One row per sample: closest sample(s), min SNPs, linkage tier, number of samples within 10 SNPs |
+| `summary_report.txt` | One row per run: pangenome tool, genomes, core genes, core alignment length, SNP sites, min/max pairwise SNPs, IQ-TREE best-fit model, SNP threshold, number of clusters, samples flagged by core QC |
+| `core_qc_report.txt` | One row per sample: percentage of the core alignment missing, `PASS` or `REVIEW` |
+| `linkage_report.txt` | Only when `snp_threshold` is set. One row per sample: cluster ID, cluster size, closest sample(s), min SNPs, number of samples within the threshold |
 | `roary/` | Roary pangenome (`pangenome: "roary"`): `core_gene_alignment.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
 | `panaroo/` | Panaroo pangenome (`pangenome: "panaroo"`): `core_gene_alignment_filtered.aln`, `gene_presence_absence.csv`, `summary_statistics.txt` |
 | `snp_sites/core_snps.fasta` | Variable sites of the core gene alignment |
@@ -125,12 +139,6 @@ All results are written to `params.output/`:
 | `iqtree/core_snps.iqtree` | IQ-TREE report, including the best-fit model |
 | `iqtree/core_snps.log` | IQ-TREE run log |
 | `pipeline_info/` | Nextflow run record: `trace.txt`, `execution_report.html`, `timeline.html` |
-
-`talbot.sh` renames the output directory with a timestamp suffix when the run finishes successfully.
-
-The two reports are tab-separated and saved as UTF-16 with CRLF line endings, the same as Sanibel's reports, so Excel splits the columns on open. On the command line, read them with `iconv -f UTF-16 -t UTF-8`. When a value can't be read from the tool output, its cell says `No data`.
-
-The linkage tier comes from each sample's closest pairwise distance: `Strong` (0-10 SNPs), `Intermediate` (11-40), `Lineage` (41-150) or `Unlinked` (over 150). These tiers are for screening. SNP cutoffs for calling an outbreak depend on the species and the epidemiology, so confirm any cluster against them.
 
 ### 📧 Contact
 **Email**: bphl-sebioinformatics@flhealth.gov

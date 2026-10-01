@@ -5,13 +5,13 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64gb
-#SBATCH --time=48:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=talbot.%j.out
 #SBATCH --error=talbot.%j.err
 #SBATCH --mail-user=your@email.gov
 #SBATCH --mail-type=FAIL,END
 
-module load apptainer nextflow python
+module load apptainer nextflow python3
 
 # Path to container image cache directory
 export NXF_APPTAINER_CACHEDIR=/path/to/apptainer/cache
